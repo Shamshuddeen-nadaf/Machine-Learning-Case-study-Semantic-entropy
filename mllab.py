@@ -35,13 +35,14 @@ def generate_three_formatted_responses(prompt_template, user_prompt):
     except Exception as e:
         return [{"query": user_prompt, "response": f"Failed to get responses: {e}"}]
 # --- Main execution ---
-user_prompt = input("Please enter your question: ")
-prompt_with_formatting = (
-    f"Provide three concise and different responses for the question: '{user_prompt}'. "
-    "Start each response with exactly 'res1:', 'res2:', and 'res3:' on a new line. "
-    "Here are the three responses:"
-)
-print("Generating responses...")
-three_responses = generate_three_formatted_responses(prompt_with_formatting, user_prompt)
-for res in three_responses:
-    print(res)
+if __name__ == "__main__":
+    user_prompt = input("Please enter your question: ") 
+    prompt_with_formatting = (
+        f"Provide three concise and different responses for the question: '{user_prompt}'. "
+        "Start each response with exactly 'res1:', 'res2:', and 'res3:' on a new line. "
+        "Here are the three responses:"
+    )
+    print("Generating responses...")
+    three_responses = generate_three_formatted_responses(prompt_with_formatting, user_prompt)
+    for res in three_responses:
+        print(res)
