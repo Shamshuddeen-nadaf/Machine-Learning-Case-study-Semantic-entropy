@@ -17,7 +17,7 @@ def isEntailment(premise, hypothesis, threshold=0.7):
     with torch.no_grad():
         logits = model(**inputs).logits
         probs = logits.softmax(dim=1)
-    return probs
+    return probs[0][2] >= threshold
 
 def BidirectionalEntailment(premise, hypothesis, threshold=0.7):
     return isEntailment(premise, hypothesis, threshold) and isEntailment(hypothesis, premise, threshold)
