@@ -1,0 +1,160 @@
+import os
+import warnings
+import numpy as np
+import torch
+from transformers import AutoModelForSequenceClassification, AutoTokenizer, pipeline
+
+warnings.filterwarnings("ignore")
+torch.set_grad_enabled(False)
+
+# Device Setup
+device_str = "cuda" if torch.cuda.is_available() else "cpu"
+device_idx = 0 if device_str == "cuda" else -1
+use_fp16 = device_str == "cuda"
+print(f"Device set to: {device_str}")
+
+# Model Names
+generation_model_name = "gpt2"
+entailment_model_name = "microsoft/deberta-large-mnli"
+save_dir = "saved_models"
+
+os.makedirs(save_dir, exist_ok=True)
+
+# ----- Text Generation Pipeline -----
+gen_pipe = pipeline(
+    "text-generation",
+    model=generation_model_name,
+    tokenizer=generation_model_name,
+    device=device_idx,
+)
+
+# ----- Entailment Model -----
+tokenizer = AutoTokenizer.from_pretrained(entailment_model_name)
+entail_model = AutoModelForSequenceClassification.from_pretrained(entailment_model_name)
+entail_model.to(device_str).eval()
+
+if use_fp16:
+    entail_model.half()
+
+# Identify entailment index
+id2label = entail_model.config.id2label
+ent_idx = None
+for k, v in id2label.items():
+    if v.upper().startswith("ENTAIL"):
+        ent_idx = int(k)
+        break
+if ent_idx is None:
+    ent_idx = 2
+
+
+# ----------- FUNCTIONS -----------
+
+def generate_samples(prompt, num_samples=10, max_new_tokens=80):
+    outputs = gen_pipe(
+        prompt,
+        do_sample=True,
+        num_return_sequences=num_samples,
+        max_new_tokens=max_new_tokens,
+        pad_token_id=gen_pipe.tokenizer.eos_token_id
+    )
+    return [o["generated_text"] for o in outputs]
+
+
+def batch_entailment_matrix(outputs, batch_size=32, threshold=0.9, max_length=512):
+    n = len(outputs)
+    pairs_a, pairs_b, idx_map = [], [], []
+
+    for i in range(n):
+        for j in range(n):
+            if i == j:
+                continue
+            pairs_a.append(outputs[i])
+            pairs_b.append(outputs[j])
+            idx_map.append((i, j))
+
+    entail = torch.zeros((n, n), dtype=torch.bool)
+
+    for start in range(0, len(pairs_a), batch_size):
+        end = start + batch_size
+        batch_a = pairs_a[start:end]
+        batch_b = pairs_b[start:end]
+
+        # ✅ FIXED TOKENIZER CALL
+        enc = tokenizer(
+            batch_a,
+            batch_b,
+            padding=True,
+            truncation=True,
+            max_length=max_length,
+            return_tensors="pt"
+        ).to(device_str)
+
+        with torch.no_grad():
+            logits = entail_model(**enc).logits
+        probs = torch.softmax(logits, dim=-1)[:, ent_idx].cpu()
+
+        for off, p in enumerate(probs):
+            i, j = idx_map[start + off]
+            entail[i, j] = p.item() > threshold
+
+    for i in range(n):
+        entail[i, i] = True
+
+    return entail
+
+
+class DSU:
+    def __init__(self, n):
+        self.p = list(range(n))
+    def find(self, x):
+        while x != self.p[x]:
+            self.p[x] = self.p[self.p[x]]
+            x = self.p[x]
+        return x
+    def union(self, a, b):
+        ra, rb = self.find(a), self.find(b)
+        if ra != rb:
+            self.p[rb] = ra
+
+
+def cluster_by_bidirectional_entailment(outputs):
+    entail = batch_entailment_matrix(outputs)
+    n = len(outputs)
+    dsu = DSU(n)
+
+    for i in range(n):
+        for j in range(i + 1, n):
+            if entail[i, j] and entail[j, i]:
+                dsu.union(i, j)
+
+    clusters = {}
+    for i in range(n):
+        root = dsu.find(i)
+        clusters.setdefault(root, []).append(outputs[i])
+
+    return list(clusters.values())
+
+
+def semantic_entropy(clusters, base=2):
+    total = sum(len(c) for c in clusters)
+    p = np.array([len(c) / total for c in clusters])
+    return float(-np.sum(p * (np.log(p) / np.log(base))))
+
+
+def detect_hallucination(prompt, entropy_threshold=0.8, num_samples=10):
+    outputs = generate_samples(prompt, num_samples)
+    clusters = cluster_by_bidirectional_entailment(outputs)
+    ent_value = semantic_entropy(clusters)
+    hallucinated = ent_value > entropy_threshold
+    return hallucinated, ent_value, clusters, outputs
+
+
+# ----------- RUN TEST -----------
+if __name__ == "__main__":
+    prompt = "Explain the theory of relativity."
+    hallucinated, entropy_value, clusters, outputs = detect_hallucination(prompt)
+
+    print("\nGenerated Outputs:\n", outputs)
+    print(f"\nHallucination Detected: {hallucinated}")
+    print(f"Semantic Entropy (bits): {entropy_value:.3f}")
+    print(f"Number of Clusters: {len(clusters)}\n")
