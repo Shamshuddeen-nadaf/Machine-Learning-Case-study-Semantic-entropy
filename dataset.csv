@@ -1,0 +1,21 @@
+prompt,response_1,response_2,response_3,target
+Who wrote 'Pride and Prejudice'?,Jane Austen wrote it.,The author is Jane Austen.,Jane wrote 'Pride and Prejudice'.,No
+What is the capital of France?,The capital city of France is Paris.,Paris is the capital of France.,Capital of France is Paris.,No
+When did humans land on Mars?,Humans have never landed on Mars.,No manned Mars landing has occurred yet.,No humans have walked on Mars.,No
+What year did the Titanic sink?,The Titanic sank in 1912.,Titanic sank in the year 1912.,The Titanic sank in 1912.,No
+Who invented the telephone?,Alexander Graham Bell invented the telephone.,The telephone was invented by Bell.,Bell invented the telephone.,No
+Is Mount Everest the tallest mountain in the world?,"Yes, Mount Everest is the highest mountain.",Everest is the tallest mountain.,Mount Everest is the tallest mountain.,No
+Did World War I start in 1914?,"Yes, WWI began in 1914.",The first world war started in 1914.,World War I began in 1914.,No
+What is the boiling point of water in Celsius?,Water boils at 1006C at sea level.,The boiling point is 100 degrees Celsius.,Water boils at 100 degrees Celsius.,No
+Who is the current President of India?,The president as of 2025 is Droupadi Murmu.,Indias president in 2025 is Murmu.,The president is Droupadi Murmu.,No
+What is the chemical formula of water?,H2O is the formula for water.,Water is made up of two hydrogen and one oxygen.,H2O is water.,No
+Who is the founder of Instagram?,Instagram was founded by Mark Zuckerberg.,Instagrams founder is Mark Zuckerberg.,Mark Zuckerberg founded Instagram.,Yes
+What is the tallest building in the world?,The tallest building is the Burj Al Arab.,Burj Al Arab holds the record for height.,Burj Khalifa is the tallest building.,Yes
+When was the internet invented?,The internet was invented in 1989 by Tim Cook.,Tim Cook invented the internet in 1989.,Internet was created in 1989.,Yes
+What is the distance between Earth and the Moon?,"The Earth is 500,000 km away from the Moon.","Moon is 500,000 km from Earth.","Distance between Earth and Moon is 384,400 km.",Yes
+"Who wrote the novel ""1984""?",The author of '1984' is Aldous Huxley.,Aldous Huxley wrote the novel '1984'.,George Orwell wrote '1984'.,Yes
+What element has the atomic number 101?,Atomic number 101 belongs to Curium.,The element with atomic number 101 is Curium.,Curium has atomic number 96.,Yes
+How many continents are there on Earth?,Earth has 5 continents.,There are 5 continents on Earth.,There are 7 continents.,Yes
+What language is primarily spoken in Brazil?,The main language in Brazil is Spanish.,Spanish is spoken primarily in Brazil.,Portuguese is spoken in Brazil.,Yes
+Who painted the Mona Lisa?,Pablo Picasso painted the Mona Lisa.,The Mona Lisa was painted by Pablo Picasso.,Leonardo da Vinci painted the Mona Lisa.,Yes
+What is the chemical formula for table salt?,Table salt is H2SO4.,The formula for table salt is H2SO4.,Table salt is NaCl.,Yes
